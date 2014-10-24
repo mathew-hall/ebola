@@ -19,14 +19,16 @@ shinyUI(fluidPage(
                                             "All" = "All"),
                                         selected = "All"),
                      checkboxInput("log", "Plot y-axis on log scale"),
-                     uiOutput("plot_controls")
+                     uiOutput("plot_cases_controls"),
+                     uiOutput("plot_deaths_controls")
                      ),
 
         mainPanel(p("This graphs the cases and deaths of each country and normalizes the onset dates all to '0' so countries can be compared"),
                   "Data was all taken from Caitlin River's 'ebola' repository",
                   a('here', href = 'https://github.com/cmrivers/ebola'),
 
-                  ggvisOutput("plot")
+                  ggvisOutput("plot_cases"),
+                  ggvisOutput("plot_deaths")
                   )
         )
 ))

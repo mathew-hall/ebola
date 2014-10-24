@@ -68,19 +68,24 @@ shinyServer(function(input, output) {
 
     if("All" %in% input$countries){selection <- all}
     else{selection <- input$countries}
-    df_plot <- df_plot[df_plot$place %in% selection, ]
-    df_plot %>% dplyr::mutate(count = as.numeric(count), day=as.numeric(day))
+    df_plot %>% 
+      filter(place %in% selection) %>% 
+      mutate(count = as.numeric(count), day=as.numeric(day)) %>%
+      transform(log.count = log10(count))
   })
 
 
 
-    
-    data_plot %>% ggvis(~day, ~count) %>% 
+    plots <- c("Cases", "Deaths")
+    sapply(plots, function(plotType){
+    data_plot %>% filter(type == plotType) %>% ggvis(~day, ~count) %>% 
       group_by(place,type) %>% 
-      layer_points(fill=~place) %>% 
+      layer_points(fill=~place, stroke=~place) %>% 
       layer_lines(stroke=~place) %>%
-      add_tooltip(function(data){ paste0(data$place," : ",as.numeric(data$count), " ", data$type)}) %>%
-      bind_shiny("plot","plot_controls")
+      add_tooltip(function(data){ paste0(data$place," : ",data$count, " ", data$type)}) %>%
+      add_legend(c("stroke","fill")) %>%
+      bind_shiny(paste0("plot_",tolower(plotType)),paste0("plot_",tolower(plotType),"controls"))
+      })
     
     # g <- ggplot(data = data_plot(),
     #             aes(x = as.numeric(day), y = as.numeric(count),
