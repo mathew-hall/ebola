@@ -79,6 +79,13 @@ shinyServer(function(input, output) {
       transform(log.count = log10(count))
   })
   
+  output$countriesList <- renderUI({
+    checkboxGroupInput("countries",
+                       label = h3("Countries to display"),
+                       choices = c(all, "All"),
+                       selected = "All")
+  })
+
 
 
     plots <- c("Cases", "Deaths")
