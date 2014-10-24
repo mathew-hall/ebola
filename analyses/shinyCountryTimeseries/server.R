@@ -78,7 +78,7 @@ shinyServer(function(input, output) {
       mutate(count = as.numeric(count), day=as.numeric(day)) %>%
       transform(log.count = log10(count))
   })
-
+  
 
 
     plots <- c("Cases", "Deaths")
@@ -90,18 +90,9 @@ shinyServer(function(input, output) {
       add_tooltip(function(data){ paste0(data$place," : ",data$count, " ", data$type)}) %>%
       add_legend(c("stroke","fill")) %>%
       add_axis("x", title=paste("Days since first reported", depluralise(tolower(plotType)))) %>%
+      add_axis("y", title=plotType) %>%
       bind_shiny(paste0("plot_",tolower(plotType)),paste0("plot_",tolower(plotType),"controls"))
       })
-    
-    # g <- ggplot(data = data_plot(),
-    #             aes(x = as.numeric(day), y = as.numeric(count),
-    #                 group = place, color = place)) +
-    #                     geom_point() + geom_line()+
-    #                         facet_grid(~ type) +
-    #                             scale_x_continuous(name="Days after first report") +
-    #                                 scale_y_continuous(name="Counts") +
-    #                                     scale_colour_manual(name="Country", values=c_colors) +
-    #                                       ggtitle("Number of observations for days after first report")
 
 
 
