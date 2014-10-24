@@ -10,6 +10,7 @@ shinyUI(fluidPage(
         sidebarPanel("Interactive plot components",
 
                      uiOutput("countriesList"),
+    				 checkboxInput("absolute", "Absolute time base"),
                      "Scale for cases:",
                      uiOutput("plot_cases_controls"),
                      "Scale for deaths:",

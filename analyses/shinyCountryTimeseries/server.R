@@ -17,45 +17,23 @@ data <- getURL(url, ssl.verifypeer = FALSE)
 df <- read.csv(textConnection(data))
 
 #Drop the Date col
-df1_noDate <- df[, !names(df) %in% c("Date")]
-#Build a series from 0...latest day in data set
-day <- c(0:max(df1_noDate$Day))
-#We'll add updates on each day we have data for each country here
-df3_merge <- data.frame(day)
 
-#For each country:
-for(country in 2:ncol(df1_noDate)){
-  df_temp <- df1_noDate[, c(1, country)] #Day,(Cases|Deaths)_Country
-  #Data set is snapshots at day of reporting, with NAs representing "no change"/"no new data"
-  #so ignore those with NAs.
-  df_temp <- na.omit(df_temp)
+df <- df[, !names(df) %in% c("Date")]
 
-  #Rescale all series so day 0 == first reported case/death
-  df_temp$day.adj <- df_temp$Day - min(df_temp$Day)
+#Convert to long table (day, type_place, count)
+long <- na.omit(melt(df, id.vars=c("Day")))
+#Split by _
+long[,c("type","place")] <- colsplit(long$variable, "_", c("type","place"))
 
-  df3_merge <- merge(x = df3_merge, y = df_temp[, names(df_temp) != "Day"],
-                     by.x = "day", by.y = "day.adj", all.x = TRUE)
-}
+long <- long[,-2] #Drop old _-delimited col
 
+long$type[long$type == "Case"] <- "Cases"
+names(long)[1] <- "absolute.days"
+names(long)[2] <- "count"
 
-row.names(df3_merge) <- df3_merge$day
-df3_merge <- df3_merge[, names(df3_merge) != "day"]
-#df3 is day, country, country, country, country, ...
+long <- long %>% group_by(place) %>% mutate(relative.days = absolute.days - min(absolute.days)) %>% mutate(count=as.numeric(count)) %>% mutate(log.count = log10(1+count))
 
-
-df4 <- as.data.frame(t(as.matrix(df3_merge)))
-
-#split into country, first get names:
-vars <- colsplit(row.names(df4), "_", c("type", "place"))
-df4 <- cbind(vars, df4)
-row.names(df4) <- NULL
-
-df5_melt <- melt(df4)
-names(df5_melt) <- c("type", "place", "day", "count")
-df5_melt$type[df5_melt$type == "Case"] <- "Cases"
-
-
-all <- unique(df5_melt$place)
+all <- unique(long$place)
 c_colors <- brewer.pal(length(all), 'Set1')
 names(c_colors) <- all
 
@@ -69,14 +47,19 @@ shinyServer(function(input, output) {
 
 
   data_plot <- reactive({
-    df_plot <- df5_melt[!is.na(df5_melt$count), ]
+	df_plot <- long
 
-    if("All" %in% input$countries){selection <- all}
-    else{selection <- input$countries}
-    df_plot %>% 
-      filter(place %in% selection) %>% 
-      mutate(count = as.numeric(count), day=as.numeric(day)) %>%
-      transform(log.count = log10(1+count))
+    if(input$absolute){
+      df_plot$days <- df_plot$absolute.days
+    }else{
+      df_plot$days <- df_plot$relative.days
+    }
+  	selection <- input$countries
+	if("All" %in% input$countries || length(input$countries) == 0 ){
+		selection <- all
+	}
+   df_plot %>% 
+	 filter(place %in% selection) 
   })
   
   output$countriesList <- renderUI({
@@ -86,11 +69,12 @@ shinyServer(function(input, output) {
                        selected = "All")
   })
 
-
-
     plots <- c("Cases", "Deaths")
     sapply(plots, function(plotType){
-    data_plot %>% filter(type == plotType) %>% ggvis(~day, input_radiobuttons(c("No transform" = "count","Log10" = "log.count"), map=as.name)) %>% 
+    data_plot %>% filter(type == plotType) %>% 
+      ggvis(
+        ~days,
+        input_radiobuttons(c("No transform" = "count","Log10" = "log.count"), map=as.name)) %>% 
       group_by(place,type) %>% 
       layer_points(fill=~place, stroke=~place) %>% 
       layer_lines(stroke=~place) %>%
@@ -100,8 +84,6 @@ shinyServer(function(input, output) {
       add_axis("y", title=plotType) %>%
       bind_shiny(paste0("plot_",tolower(plotType)),paste0("plot_",tolower(plotType),"_controls"))
       })
-
-
 
 
 })
