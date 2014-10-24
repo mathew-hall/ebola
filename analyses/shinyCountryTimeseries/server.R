@@ -59,6 +59,11 @@ all <- unique(df5_melt$place)
 c_colors <- brewer.pal(length(all), 'Set1')
 names(c_colors) <- all
 
+#Won't work all the time, but works here.
+depluralise <- function(word){
+  gsub("s$", "", word)
+}
+
 shinyServer(function(input, output) {
 
 
@@ -84,6 +89,7 @@ shinyServer(function(input, output) {
       layer_lines(stroke=~place) %>%
       add_tooltip(function(data){ paste0(data$place," : ",data$count, " ", data$type)}) %>%
       add_legend(c("stroke","fill")) %>%
+      add_axis("x", title=paste("Days since first reported", depluralise(tolower(plotType)))) %>%
       bind_shiny(paste0("plot_",tolower(plotType)),paste0("plot_",tolower(plotType),"controls"))
       })
     
