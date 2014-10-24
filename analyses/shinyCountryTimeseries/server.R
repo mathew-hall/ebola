@@ -70,13 +70,18 @@ shinyServer(function(input, output) {
     if("All" %in% input$countries){selection <- all}
     else{selection <- input$countries}
     df_plot <- df_plot[df_plot$place %in% selection, ]
-    df_plot
+    df_plot %>% dplyr::mutate(count = as.numeric(count), day=as.numeric(day))
   })
 
 
 
     
-    data_plot %>% ggvis(~as.numeric(day), ~as.numeric(count)) %>% group_by(place,type) %>% layer_points(fill=~place) %>% layer_lines(stroke=~place) %>%bind_shiny("plot","plot_controls")
+    data_plot %>% ggvis(~day, ~count) %>% 
+      group_by(place,type) %>% 
+      layer_points(fill=~place) %>% 
+      layer_lines(stroke=~place) %>%
+      add_tooltip(function(data){ paste0(data$place," : ",as.numeric(data$count), " ", data$type)}) %>%
+      bind_shiny("plot","plot_controls")
     
     # g <- ggplot(data = data_plot(),
     #             aes(x = as.numeric(day), y = as.numeric(count),
