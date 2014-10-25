@@ -42,6 +42,9 @@ depluralise <- function(word){
   gsub("s$", "", word)
 }
 
+all <- unique(long$place)
+c_colors <- brewer.pal(length(all), 'Set1')
+names(c_colors) <- all
 shinyServer(function(input, output) {
 
 
@@ -54,10 +57,11 @@ shinyServer(function(input, output) {
     }else{
       df_plot$days <- df_plot$relative.days
     }
-  	selection <- input$countries
-	if("All" %in% input$countries || length(input$countries) == 0 ){
+	if(input$all_countries || length(input$countries) == 0){
 		selection <- all
-	}
+    }else{
+        selection <- input$countries
+    }
    df_plot %>% 
 	 filter(place %in% selection) 
   })
@@ -65,8 +69,7 @@ shinyServer(function(input, output) {
   output$countriesList <- renderUI({
     checkboxGroupInput("countries",
                        label = h3("Countries to display"),
-                       choices = c(all, "All"),
-                       selected = "All")
+                       choices = all)
   })
 
     plots <- c("Cases", "Deaths")

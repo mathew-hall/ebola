@@ -8,15 +8,18 @@ shinyUI(fluidPage(
     tags$head(includeScript("google-analytics.js")),
 
     sidebarLayout(
-        sidebarPanel("Interactive plot components",
-
-                     uiOutput("countriesList"),
-    				 checkboxInput("absolute", "Absolute time base"),
-                     "Scale for cases:",
-                     uiOutput("plot_cases_controls"),
-                     "Scale for deaths:",
-                     uiOutput("plot_deaths_controls")
-                     ),
+        sidebarPanel("Plot Options",
+              checkboxInput("all_countries", "Show all countries", value=T),
+                   conditionalPanel(
+                     condition= "input.all_countries == false",
+                     uiOutput("countriesList")),
+                 h2("Scales"),
+				 checkboxInput("absolute", "Absolute time base"),
+                 "Scale for cases:",
+                 uiOutput("plot_cases_controls"),
+                 "Scale for deaths:",
+                 uiOutput("plot_deaths_controls")
+                 ),
 
         mainPanel(p("These graphs show incidence and death rates of Ebola in countries where infections have been reported."),
                   p("Data was all taken from Caitlin River's",
