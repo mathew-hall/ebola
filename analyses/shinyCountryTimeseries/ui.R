@@ -1,5 +1,6 @@
 # ui.R
 library(shiny)
+library(ggvis)
 
 shinyUI(fluidPage(
     titlePanel("Plotting Ebola"),

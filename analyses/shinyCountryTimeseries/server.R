@@ -1,7 +1,6 @@
 # server.R
 
 library(RCurl)
-library(ggplot2)
 library(stringr)
 library(reshape2)
 library(magrittr)
@@ -9,6 +8,7 @@ library(dplyr)
 library(scales)
 library(shiny)
 library(foreign)
+library(ggvis)
 library(RColorBrewer)
 
 url <- "https://raw.githubusercontent.com/cmrivers/ebola/master/country_timeseries.csv"
