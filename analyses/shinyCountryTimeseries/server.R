@@ -62,26 +62,29 @@ shinyServer(function(input, output) {
     }else{
         selection <- input$countries
     }
+    if(input$log_scale){
+      df_plot <- df_plot %>% mutate(count.value = log10(1+ count))
+    }else{
+      df_plot <- df_plot  %>% mutate(count.value = count)
+    }
    df_plot %>% 
 	 filter(place %in% selection) 
   })
   
   output$countriesList <- renderUI({
     checkboxGroupInput("countries",
-                       label = h3("Countries to display"),
+                       label = h3("Countries"),
                        choices = all)
   })
 
     plots <- c("Cases", "Deaths")
     sapply(plots, function(plotType){
     data_plot %>% filter(type == plotType) %>% 
-      ggvis(
-        ~days,
-        input_radiobuttons(c("No transform" = "count","Log10" = "log.count"), map=as.name)) %>% 
+      ggvis(~days,~count.value) %>% 
       group_by(place,type) %>% 
       layer_points(fill=~place, stroke=~place) %>% 
       layer_lines(stroke=~place) %>%
-      add_tooltip(function(data){ paste0(data$place," : ",data$count, " ", data$type)}) %>%
+      add_tooltip(function(data){ paste0(data$place," : ",ifelse(input$log_scale,ceiling(10**(data$count.value)-1),data$count.value), " ", data$type)}) %>%
       add_legend(c("stroke","fill")) %>%
       add_axis("x", title=paste("Days since first reported", depluralise(tolower(plotType)))) %>%
       add_axis("y", title=plotType) %>%

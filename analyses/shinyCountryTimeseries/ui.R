@@ -13,12 +13,9 @@ shinyUI(fluidPage(
                    conditionalPanel(
                      condition= "input.all_countries == false",
                      uiOutput("countriesList")),
-                 h2("Scales"),
+                 h3("Scales"),
 				 checkboxInput("absolute", "Absolute time base"),
-                 "Scale for cases:",
-                 uiOutput("plot_cases_controls"),
-                 "Scale for deaths:",
-                 uiOutput("plot_deaths_controls")
+                 checkboxInput("log_scale", "Use log scales", value=F)
                  ),
 
         mainPanel(p("These graphs show incidence and death rates of Ebola in countries where infections have been reported."),
